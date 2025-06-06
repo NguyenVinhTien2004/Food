@@ -16,7 +16,7 @@ class Config:
     # --- Database Configuration ---
     def get_mongo_uri(self):
         """Lấy MongoDB URI từ biến môi trường"""
-        return os.getenv("MONGO_URI", "mongodb://localhost:8501/")                     
+        return os.getenv("MONGO_URI", "mongodb://localhost:27017/")                     
     
     def get_mongo_database(self):
         """Lấy tên database MongoDB"""
