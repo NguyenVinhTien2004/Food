@@ -1,77 +1,106 @@
 import os
-import sys
+from dotenv import load_dotenv
+from typing import Optional, Union
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()  # Load biến môi trường từ file .env
-except ImportError:
-    # Fallback nếu không có dotenv
-    def load_dotenv():
-        pass  # Không làm gì cả
+# Load environment variables from .env file
+load_dotenv()
 
 class Config:
-    def __init__(self):
-        load_dotenv()
-        
-    # --- Database Configuration ---
-    def get_mongo_uri(self):
-        """Lấy MongoDB URI từ biến môi trường"""
-        return os.getenv("MONGO_URI")                     
+    """
+    Configuration class to manage all environment variables with proper type conversion and error handling
+    """
     
-    def get_mongo_database(self):
-        """Lấy tên database MongoDB"""
-        return os.getenv("MONGO_DATABASE", "db_kf")
+    @staticmethod
+    def get_mongo_uri() -> str:
+        """Get MongoDB connection URI"""
+        uri = os.getenv("MONGO_URI")
+        if not uri:
+            raise ValueError("MongoDB URI not found in environment variables")
+        return uri
     
-    def get_mongo_collection(self):
-        """Lấy tên collection MongoDB"""
-        return os.getenv("MONGO_COLLECTION", "kf_new")
+    @staticmethod
+    def get_mongo_database() -> str:
+        """Get MongoDB database name"""
+        db = os.getenv("MONGO_DATABASE")
+        if not db:
+            raise ValueError("MongoDB database name not found in environment variables")
+        return db
     
-    def get_mongo_connection_timeout(self):
-        """Thời gian timeout kết nối MongoDB (ms)"""
-        return int(os.getenv("MONGO_CONNECTION_TIMEOUT", 5000))  # 5 giây mặc định
+    @staticmethod
+    def get_mongo_collection() -> str:
+        """Get MongoDB collection name"""
+        collection = os.getenv("MONGO_COLLECTION")
+        if not collection:
+            raise ValueError("MongoDB collection name not found in environment variables")
+        return collection
     
-    def get_mongo_server_selection_timeout(self):
-        """Thời gian timeout chọn server MongoDB (ms)"""
-        return int(os.getenv("MONGO_SERVER_SELECTION_TIMEOUT", 10000))  # 10 giây mặc định
+    @staticmethod
+    def get_mongo_connection_timeout() -> int:
+        """Get MongoDB connection timeout in milliseconds"""
+        return int(os.getenv("MONGO_CONNECTION_TIMEOUT", "30000"))
     
-    # --- Application Configuration ---
-    def get_app_title(self):
-        """Lấy tiêu đề ứng dụng"""
+    @staticmethod
+    def get_mongo_server_selection_timeout() -> int:
+        """Get MongoDB server selection timeout in milliseconds"""
+        return int(os.getenv("MONGO_SERVER_SELECTION_TIMEOUT", "30000"))
+    
+    @staticmethod
+    def get_mongo_socket_timeout() -> int:
+        """Get MongoDB socket timeout in milliseconds"""
+        return int(os.getenv("MONGO_SOCKET_TIMEOUT", "20000"))
+    
+    @staticmethod
+    def get_mongo_max_pool_size() -> int:
+        """Get MongoDB connection pool max size"""
+        return int(os.getenv("MONGO_MAX_POOL_SIZE", "10"))
+    
+    @staticmethod
+    def get_mongo_retry_writes() -> bool:
+        """Get MongoDB retry writes setting"""
+        return os.getenv("MONGO_RETRY_WRITES", "true").lower() == "true"
+    
+    @staticmethod
+    def get_app_title() -> str:
+        """Get application title"""
         return os.getenv("APP_TITLE", "Coffee Dashboard")
     
-    def is_debug_mode(self):
-        """Kiểm tra chế độ debug"""
-        return os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
+    @staticmethod
+    def is_debug_mode() -> bool:
+        """Check if debug mode is enabled"""
+        return os.getenv("DEBUG", "false").lower() == "true"
     
-    def get_environment(self):
-        """Lấy môi trường hoạt động"""
+    @staticmethod
+    def get_environment() -> str:
+        """Get current environment (development/production)"""
         return os.getenv("ENVIRONMENT", "development")
     
-    def get_cache_ttl(self):
-        """Lấy thời gian sống cache (giây)"""
-        return int(os.getenv("CACHE_TTL", 3600))  # 1 giờ mặc định
+    @staticmethod
+    def get_cache_ttl() -> int:
+        """Get cache TTL in seconds"""
+        return int(os.getenv("CACHE_TTL", "3600"))
     
-    def get_secret_key(self):
-        """Lấy secret key cho ứng dụng"""
-        return os.getenv("SECRET_KEY", "default-secret-key-please-change-me")
+    @staticmethod
+    def get_secret_key() -> str:
+        """Get application secret key"""
+        key = os.getenv("SECRET_KEY")
+        if not key:
+            raise ValueError("Secret key not found in environment variables")
+        return key
     
-    def get_log_level(self):
-        """Lấy mức độ logging"""
-        return os.getenv("LOG_LEVEL", "INFO")
+    @staticmethod
+    def get_log_level() -> str:
+        """Get logging level"""
+        return os.getenv("LOG_LEVEL", "INFO").upper()
+    
+    @staticmethod
+    def get_streamlit_port() -> int:
+        """Get Streamlit server port"""
+        return int(os.getenv("STREAMLIT_SERVER_PORT", "8501"))
+    
+    @staticmethod
+    def get_streamlit_address() -> str:
+        """Get Streamlit server address"""
+        return os.getenv("STREAMLIT_SERVER_ADDRESS", "0.0.0.0")
 
-def validate_config():
-    """Validate required configuration"""
-    config = Config()
-    required_vars = [
-        "MONGO_URI",
-        "MONGO_DATABASE",
-        "MONGO_COLLECTION"
-    ]
-    
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-    
-    if missing_vars:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
-
-# Tạo instance config toàn cục
+# Singleton configuration instance
 config = Config()
